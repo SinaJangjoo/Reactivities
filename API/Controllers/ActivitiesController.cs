@@ -5,8 +5,8 @@ using Persistence;
 
 namespace API.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
+    // [ApiController]
+    // [Route("[controller]")]    //If we uncomment these two lines we cannot access datas from Postman!
 
     // This means we have some customized features inside BaseApiController
     // that we want other Controllers inherited them rather the default "ControllerBase" controller 

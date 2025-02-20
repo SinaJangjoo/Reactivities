@@ -1,4 +1,6 @@
+using Application.Activities;
 using Domain;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -12,18 +14,13 @@ namespace API.Controllers
     // that we want other Controllers inherited them rather the default "ControllerBase" controller 
     public class ActivitiesController : BaseApiController
     {
-        private readonly DataContext _context;
-
-        public ActivitiesController(DataContext context)
-        {
-            _context = context;
-        }
-
-
+       
         [HttpGet] //api/activities
         public async Task<ActionResult<List<Activity>>> GetActivities()
         {
-            return await _context.Activities.ToListAsync();
+            // 1- From Mediator defined in Application layer
+            // 2- "Mediator" property defined in BaseApiController inside protected method
+            return await Mediator.Send(new List.Query());  
         }
 
         [HttpGet("{id}")] //api/activities/{id}
@@ -32,7 +29,7 @@ namespace API.Controllers
             // var activity = await _context.Activities.FindAsync(id);
             // return activity;
 
-            return await _context.Activities.FindAsync(id);
+            return Ok();
         }
     }
 }

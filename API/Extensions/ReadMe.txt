@@ -1,0 +1,1 @@
+In this class we put any extensions method that we have

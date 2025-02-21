@@ -1,5 +1,4 @@
-using Application.Activities;
-using Application.Core;
+using API.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -8,27 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<DataContext>(opt => {
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));   // our connection string inside appsettings.Development.json
-});
-
-//CORS Policy  --  (When we run react app we have to do this here if we get CORS Policy!)
-builder.Services.AddCors(opt=>{
-    opt.AddPolicy("CorsPolicy", policy=>{
-        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
-    });
-});
-
-// This is a registration for our Mediator List Handler as a service
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(List.Handler).Assembly));
-
-// This is a registration for AutoMapper as a service
-builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
-
+//All other services defined inside API -> Extensions -> ApplicationServiceExtensions to make our Program.cs housekeeping
+// This is an Extension Method
+builder.Services.AddApplicationServices(builder.Configuration);  
 
 var app = builder.Build();
 

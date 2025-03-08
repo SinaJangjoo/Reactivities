@@ -1,20 +1,13 @@
 import { Button, Form, Segment } from "semantic-ui-react";
-import { Activity } from "../../../app/models/activity";
 import { ChangeEvent, useState } from "react";
+import { useStore } from "../../../app/stores/store";
+import { observer } from "mobx-react-lite";
 
-interface Props {
-  activity: Activity | undefined;
-  closeForm: () => void;
-  createOrEdit: (activity: Activity) => void;
-  submitting:boolean;
-}
+export default observer(function ActivityForm() {
 
-export default function ActivityForm({
-  activity: selectedActivity,
-  closeForm,
-  createOrEdit,
-  submitting
-}: Props) {
+  const {activityStore} = useStore();
+  const {selectedActivity, closeForm, createActivity, updateActivity, loading} = activityStore;
+
   //Edit mode & with populate past values inside input fields
   // 1- We set the value if they are exists, but if not we set and empty string
   const initialState = selectedActivity ?? {
@@ -31,7 +24,7 @@ export default function ActivityForm({
   const [activity, setActivity] = useState(initialState);
 
   function handleSubmit() {
-    createOrEdit(activity)
+    activity.id ? updateActivity(activity) : createActivity(activity);
   }
 
   // 3- We have to create a func to be able to change inputs! and show the past input values for if we want change or not!
@@ -84,7 +77,7 @@ export default function ActivityForm({
           name="venue"
           onChange={handleInputChange}
         />
-        <Button loading={submitting} floated="right" positive type="submit" content="Submit" />
+        <Button loading={loading} floated="right" positive type="submit" content="Submit" />
         <Button
           onClick={closeForm}
           floated="right"
@@ -94,4 +87,4 @@ export default function ActivityForm({
       </Form>
     </Segment>
   );
-}
+})

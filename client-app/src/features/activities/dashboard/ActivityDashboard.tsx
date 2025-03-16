@@ -1,30 +1,34 @@
 import { Grid } from "semantic-ui-react";
 import ActivityList from "./ActivityList";
-import ActivityDetails from "../details/ActivityDetails";
-import ActivityForm from "../form/ActivityForm";
 import { useStore } from "../../../app/stores/store";
 import { observer } from "mobx-react-lite";
+import { useEffect } from "react";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 
 export default observer(function ActivityDashboard() {
+  //It comes from a Hook which is defined inside stores.ts to throw all the stores together at once!
+  const { activityStore } = useStore();
+  const { loadActivities, activityRegistry } = activityStore;
 
-  const {activityStore} = useStore();
-  const {selectedActivity , editMode} = activityStore;  // we destructure these two values because our condition in line 38
+  //Axios calling inside...
+  // this part of code is define if we load list of activities once and it get inside memory our loading will set,
+  // but for the second time if we would load activities the loading will not appear again because we have them inside memory!
+  useEffect(() => {
+    if (activityRegistry.size <= 0) loadActivities();
+  }, [activityRegistry.size]); // pass the activityRegistry.size as a dependency to our useEffect
+
+  // set loading before fetching data
+  if (activityStore.loadingInitial)
+    return <LoadingComponent content="Loading app" />;
 
   return (
     <Grid>
       <Grid.Column width="10">
-        <ActivityList/>
+        <ActivityList />
       </Grid.Column>
       <Grid.Column width="6">
-        {/* When we press Edit btn details will disappear because of  "!editMode" this in line below! */}
-        {selectedActivity && !editMode && (
-          <ActivityDetails />
-        )}
-        {/* we only show thw ActivityForm only if we are in editMode! so we define like this: */}
-        {editMode && (
-          <ActivityForm />
-        )}
+        <h2>Activity filters</h2>
       </Grid.Column>
     </Grid>
   );
-})
+});

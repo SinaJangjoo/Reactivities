@@ -9,7 +9,7 @@ export default class ActivityStore {
   selectedActivity: Activity | undefined = undefined; //State value
   editMode = false;
   loading = false;
-  loadingInitial = true;
+  loadingInitial = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -25,8 +25,10 @@ export default class ActivityStore {
 
   ////////////////////////////////////////////////// Activity Dashboard ///////////////////////////////////////////////////////////
 
+  //List of Activities
   // because we want to bind this function to a class we have to define this function as arrow function!
   loadActivities = async () => {
+    this.setLoadingInitial(true);
     try {
       //Axios calling to get list of activities!
       //Because it is async it won't execute next line until it returns all activities!
@@ -34,9 +36,7 @@ export default class ActivityStore {
 
       // before we set our activities we have to optimize our date to correct format without UTC time or sth else!
       activities.forEach((activity) => {
-        activity.date = activity.date.split("T")[0];
-        // this.activities.push(activity);  ↓↓↓↓↓↓
-        this.activityRegistry.set(activity.id, activity);
+        this.setActivity(activity);
       });
       this.setLoadingInitial(false);
     } catch (error) {
@@ -45,37 +45,40 @@ export default class ActivityStore {
     }
   };
 
+  //Single Activity
+  loadActivity = async (id: string) => {
+    let activity = this.getActivity(id);
+    if (activity) {
+      this.selectedActivity = activity;
+      return activity;
+    } else {
+      this.setLoadingInitial(true);
+      try {
+        activity = await agent.Activities.details(id);
+        this.setActivity(activity);
+        runInAction(() => (this.selectedActivity = activity));
+        this.setLoadingInitial(false);
+        return activity;
+      } catch (error) {
+        console.log(error);
+        this.setLoadingInitial(false);
+      }
+    }
+  };
+
+  private setActivity = (activity: Activity) => {
+    activity.date = activity.date.split("T")[0];
+    // this.activities.push(activity);  ↓↓↓↓↓↓
+    this.activityRegistry.set(activity.id, activity);
+  };
+
+  private getActivity = (id: string) => {
+    return this.activityRegistry.get(id);
+  };
+
   //Separated function to call loading and pass it a boolean to set handy anywhere whatever we want to rather than using runInAction()
   setLoadingInitial = (state: boolean) => {
     this.loadingInitial = state;
-  };
-  ////////////////////////////////////////////////// Activity Details /////////////////////////////////////////////////////////////
-
-  //When we hit "View" btn in activity dashboard
-  //To find selected activity id and pass it to ActivityDashboard to finally show beside inside that
-  selectActivity = (id: string) => {
-    // this.selectedActivity = this.activities.find((a) => a.id === id);  ↓↓↓↓↓↓
-    this.selectedActivity = this.activityRegistry.get(id);
-  };
-
-  //When we hit "Cancel" btn on activities details
-  cancelSelectedActivity = () => {
-    this.selectedActivity = undefined;
-  };
-
-  //When we het "Edit" btn on activities details
-  //The id is nullable because if we Edit we have id and if we Create we don't have
-  //This function has optional value! if the id was exist it means user want to edit so we pass the id if not, we close the details!
-  openForm = (id?: string) => {
-    id ? this.selectActivity(id) : this.cancelSelectedActivity();
-    this.editMode = true;
-  };
-
-  closeForm = () => {
-    this.editMode = false;
-    runInAction(() => {
-      this.loading = false;
-    });
   };
 
   ////////////////////////////////////////////////// CREATE - EDIT - DELETE /////////////////////////////////////////////////////////////
@@ -137,8 +140,6 @@ export default class ActivityStore {
         //this.activities = [...this.activities.filter((x) => x.id !== id)];
         //Remove the activity from the list ↓↓↓↓↓
         this.activityRegistry.delete(id);
-
-        if (this.selectedActivity?.id === id) this.cancelSelectedActivity(); //Remove the deleted activity details on right side
         this.loading = false;
       });
     } catch (error) {

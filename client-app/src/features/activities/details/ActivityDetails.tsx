@@ -1,9 +1,13 @@
-import { Button } from "semantic-ui-react";
+import { Grid } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { observer } from "mobx-react-lite";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect } from "react";
+import ActivityDetailedHeader from "./ActivityDetailedHeader";
+import ActivityDetailedInfo from "./ActivityDetailedInfo";
+import ActivityDetailedChat from "./ActivityDetailedChat";
+import ActivityDetailedSidebar from "./ActivityDetailedSidebar";
 
 export default observer(function ActivityDetails() {
   const { activityStore } = useStore();
@@ -24,23 +28,15 @@ export default observer(function ActivityDetails() {
   if (loadingInitial || !activity) return <LoadingComponent />; // Just to handle an "undefined error" while we using for example activity.category
 
   return (
-    <div className="ui card fluid">
-      <div className="image">
-        <img src={`/assets/categoryImages/${activity.category}.jpg`} />
-      </div>
-      <div className="content">
-        <a className="header">{activity.title}</a>
-        <div className="meta">
-          <span className="date">{activity.date}</span>
-        </div>
-        <div className="description">{activity.description}</div>
-      </div>
-      <div className="extra content">
-        <Button.Group widths="2">
-          <Button as={Link} to={`/manage/${activity.id}`} basic color="blue" content="Edit" />
-          <Button as={Link} to='/activities' basic color="grey" content="Cancel" />
-        </Button.Group>
-      </div>
-    </div>
+    <Grid>
+      <Grid.Column width={10}>
+        <ActivityDetailedHeader activity={activity}/>
+        <ActivityDetailedInfo activity={activity}/>
+        <ActivityDetailedChat/>
+      </Grid.Column>
+      <Grid.Column width={6}>
+        <ActivityDetailedSidebar/>
+      </Grid.Column>
+    </Grid>
   );
 });

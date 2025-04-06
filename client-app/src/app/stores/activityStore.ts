@@ -19,7 +19,22 @@ export default class ActivityStore {
   // To sort our activities by date and move newest activities on top rather than end of list!
   get activitiesByDate() {
     return Array.from(this.activityRegistry.values()).sort(
-      (a, b) => Date.parse(b.date) - Date.parse(a.date)
+      (a, b) => Date.parse(a.date) - Date.parse(b.date)
+    );
+  }
+
+  //Computed property ( S3 F9 )
+  //Group activities by their date
+  //if we had multiple activities inside same date they will be in one group by the key (their date)
+  get groupedActivities() {
+    return Object.entries(
+      this.activitiesByDate.reduce((activities, activity) => {
+        const date = activity.date;
+        activities[date] = activities[date]
+          ? [...activities[date], activity]
+          : [activity];
+        return activities;
+      }, {} as { [key: string]: Activity[] })
     );
   }
 

@@ -1,6 +1,9 @@
 // AXIOS - This going to contain all our requests that go to our API (centralize file)
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { Activity } from "../models/activity";
+import { toast } from "react-toastify";
+import { router } from "../router/Routes";
+import { store } from "../stores/store";
 
 //To set timer for loading before fetching data (axios interceptors)
 const sleep = (delay: number) => {
@@ -9,16 +12,47 @@ const sleep = (delay: number) => {
   });
 };
 
-axios.interceptors.response.use(async (response) => {
-  try {
+axios.interceptors.response.use(
+  async (response) => {
     await sleep(1000); //loading period: 1 sec
     return response; //then return responses
-  } catch (error) {
-    //if error occurred during loading return:
-    console.log(error);
-    return await Promise.reject(error);
+  },
+  (error: AxiosError) => {
+    const { data, status, config } = error.response as AxiosResponse;
+    switch (status) {
+      case 400:
+        if (config.method === "get" && data.errors.hasOwnProperty("id")) {
+          router.navigate("/not-found");
+        }
+        if (data.errors) {
+          const modalStateErrors = [];
+          for (const key in data.errors) {
+            if (data.errors[key]) {
+              modalStateErrors.push(data.errors[key]);
+            }
+          }
+          throw modalStateErrors.flat();
+        } else {
+          toast.error(data);
+        }
+        break;
+      case 401:
+        toast.error("Unauthorized");
+        break;
+      case 403:
+        toast.error("Forbidden");
+        break;
+      case 404:
+        router.navigate("/not-found"); // navigate to NotFound page rather than showing us a toast notifications!
+        break;
+      case 500:
+        store.commonStore.setServerError(data);
+        router.navigate("/server-error");
+        break;
+    }
+    return Promise.reject(error); //It return back the 'error' to the function
   }
-});
+); // When a request rejected is anything happened except 200 OK!
 
 // 1- Define our base URL
 axios.defaults.baseURL = "http://localhost:5000/api";
@@ -42,8 +76,9 @@ const request = {
 const Activities = {
   list: () => request.get<Activity[]>("/activities"), //GET ALL
   details: (id: string) => request.get<Activity>(`/activities/${id}`), //GET
-  create: (activity: Activity) =>request.post<void>("/activities", activity), //POST
-  update: (activity: Activity) =>request.put<void>(`/activities/${activity.id}`, activity), //PUT
+  create: (activity: Activity) => request.post<void>("/activities", activity), //POST
+  update: (activity: Activity) =>
+    request.put<void>(`/activities/${activity.id}`, activity), //PUT
   delete: (id: string) => request.del<void>(`/activities/${id}`), //DELETE
 };
 

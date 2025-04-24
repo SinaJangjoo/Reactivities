@@ -1,5 +1,6 @@
 using Application.Activities;
 using Domain;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -23,7 +24,8 @@ namespace API.Controllers
         [HttpGet("{id}")] //api/activities/{id}
         public async Task<ActionResult<Activity>> GetActivity(Guid id)  //the name if "id" should match with [HttpGet("{id}")]
         {
-            return await Mediator.Send(new Details.Query { Id = id });  // We pass the id with an object initializer to the Mediator
+            var result = await Mediator.Send(new Details.Query { Id = id });  // We pass the id with an object initializer to the Mediator
+            return HandleResult(result);  //Inside BaseApiController
         }
 
         [HttpPost]
@@ -38,15 +40,13 @@ namespace API.Controllers
         public async Task<IActionResult> EditActivity(Guid id, Activity activity)
         {
             activity.Id = id;
-            await Mediator.Send(new Edit.Command { Activity = activity });
-            return Ok();
+            return HandleResult(await Mediator.Send(new Edit.Command { Activity = activity }));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActivity(Guid id)
         {
-            await Mediator.Send(new Delete.Command{Id=id});
-            return Ok();
+            return HandleResult(await Mediator.Send(new Delete.Command { Id = id }));
         }
     }
 }

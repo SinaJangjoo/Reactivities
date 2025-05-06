@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "react-toastify/ReactToastify.css"
+import 'react-datepicker/dist/react-datepicker.css'
 import "./app/layout/styles.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-calendar/dist/Calendar.css"  //To get some style without adding any more css code to our calendar inside our dashboard

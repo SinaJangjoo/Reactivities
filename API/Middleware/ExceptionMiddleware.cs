@@ -20,6 +20,7 @@ namespace API.Middleware
             _env = env;
         }
 
+        //It must exactly be InvokeAsync()!
         public async Task InvokeAsync(HttpContext context)
         {
             try

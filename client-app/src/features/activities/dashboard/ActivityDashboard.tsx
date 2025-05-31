@@ -20,7 +20,7 @@ export default observer(function ActivityDashboard() {
 
   // set loading before fetching data
   if (activityStore.loadingInitial)
-    return <LoadingComponent content="Loading app" />;
+    return <LoadingComponent content="Loading Activities..." />;
 
   return (
     <Grid>

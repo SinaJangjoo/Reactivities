@@ -1,9 +1,10 @@
-// AXIOS - This going to contain all our requests that go to our API (centralize file)
+// AXIOS - This going to contain all our requests that go to our API (centralized file)
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { Activity } from "../models/activity";
 import { toast } from "react-toastify";
 import { router } from "../router/Routes";
 import { store } from "../stores/store";
+import { User, UserFormValues } from "../models/users";
 
 //To set timer for loading before fetching data (axios interceptors)
 const sleep = (delay: number) => {
@@ -11,6 +12,12 @@ const sleep = (delay: number) => {
     setTimeout(resolve, delay);
   });
 };
+
+axios.interceptors.request.use(config =>{
+  const token = store.commonStore.token;
+  if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+})
 
 axios.interceptors.response.use(
   async (response) => {
@@ -82,9 +89,17 @@ const Activities = {
   delete: (id: string) => request.del<void>(`/activities/${id}`), //DELETE
 };
 
+// Our Account axios (login - register - current user)
+const Account = {
+  current: ()=> request.get<User>('/account'),
+  login: (user: UserFormValues)=> request.post<User>('/account/login', user),  //We send to the API the "UserFormValues" and get "User" back
+  register: (user:UserFormValues)=> request.post<User>('/account/register', user)
+}
+
 // 5- The agent that return all the axios by calling them together
 const agent = {
   Activities,
+  Account
 };
 
 export default agent;

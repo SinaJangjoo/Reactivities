@@ -11,9 +11,10 @@ namespace API.Controllers
 
     // This means we have some customized features inside BaseApiController
     // that we want other Controllers inherited them rather the default "ControllerBase" controller 
+
+    [AllowAnonymous]
     public class ActivitiesController : BaseApiController
     {
-
         [HttpGet] //api/activities
         public async Task<ActionResult<List<Activity>>> GetActivities()
         {
